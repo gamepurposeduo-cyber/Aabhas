@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aabhas - Social Media</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <nav class="bg-slate-800 text-white p-4 shadow-md">
+        <div class="max-w-2xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wider">Aabhas</h1>
+            <span id="user-display" class="text-sm font-semibold text-slate-300"></span>
+        </div>
+    </nav>
+
+    <main class="max-w-2xl mx-auto mt-6 p-4">
+        
+        <div id="login-box" class="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-200">
+            <h3 class="text-lg font-semibold mb-3 text-slate-700">স্বাগতম! আপনার নাম দিয়ে যুক্ত হোন:</h3>
+            <div class="flex gap-2">
+                <input type="text" id="username-input" class="border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="আপনার নাম...">
+                <button onclick="login()" class="bg-slate-800 text-white px-5 py-2 rounded font-bold hover:bg-slate-700 transition">প্রবেশ করুন</button>
+            </div>
+        </div>
+
+        <div id="post-box" class="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-200 hidden">
+            <textarea id="post-input" class="w-full border p-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-slate-400" rows="3" placeholder="আপনার মনে এখন কী আভাস চলছে?"></textarea>
+            <button onclick="createPost()" class="bg-slate-700 text-white px-6 py-2 rounded font-bold hover:bg-slate-800 float-right transition">আভাস দিন</button>
+            <div class="clear-both"></div>
+        </div>
+
+        <div id="feed" class="space-y-4">
+            <p class="text-gray-500 text-center">আভাস ফিড লোড হচ্ছে...</p>
+        </div>
+    </main>
+
+    <script>
+        let currentUser = localStorage.getItem('aabhas_user');
+
+        function init() {
+            if (currentUser) {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('post-box').classList.remove('hidden');
+                document.getElementById('user-display').innerText = `ইউজার: ${currentUser}`;
+            }
+            fetchPosts();
+        }
+
+        function login() {
+            const name = document.getElementById('username-input').value.trim();
+            if (name) {
+                localStorage.setItem('aabhas_user', name);
+                currentUser = name;
+                init();
+            }
+        }
+
+        async function fetchPosts() {
+            try {
+                const res = await fetch('/api/posts');
+                const posts = await res.json();
+                const feed = document.getElementById('feed');
+                feed.innerHTML = '';
+                
+                if(posts.length === 0) {
+                    feed.innerHTML = '<p class="text-gray-500 text-center">এখনো কোনো আভাস নেই। প্রথম আভাসটি আপনিই দিন!</p>';
+                    return;
+                }
+
+                posts.forEach(post => {
+                    feed.innerHTML += `
+                        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 transition hover:shadow-md">
+                            <div class="font-bold text-slate-800 text-base">${post.username}</div>
+                            <div class="text-gray-400 text-xs mb-3">${new Date(post.timestamp).toLocaleString('bn-BD')}</div>
+                            <div class="text-gray-700 leading-relaxed">${post.text}</div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                document.getElementById('feed').innerHTML = '<p class="text-red-500 text-center">ফিড লোড করতে সমস্যা হচ্ছে।</p>';
+            }
+        }
+
+        async function createPost() {
+            const text = document.getElementById('post-input').value.trim();
+            if (!text) return;
+
+            await fetch('/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser, text: text })
+            });
+
+            document.getElementById('post-input').value = '';
+            fetchPosts();
+        }
+
+        init();
+    </script>
+</body>
+</html>
