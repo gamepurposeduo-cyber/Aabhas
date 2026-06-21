@@ -1,5 +1,5 @@
 {
-    "name": "aabhas-social-app",
+  "name": "aabhas-social-app",
   "compatibility_date": "2026-06-21",
   "assets": {
     "directory": "."
@@ -7,7 +7,7 @@
   "kv_namespaces": [
     {
       "binding": "SOCIAL_KV",
-      "id": "6912e5c0305642d7bb54b73afcf403c2" 
+      "id": "6912e5c0305642d7bb54b73afcf403c2"
     }
   ]
 }
